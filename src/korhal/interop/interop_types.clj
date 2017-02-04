@@ -4,7 +4,6 @@
   ['marine 'Terran_Marine
    'ghost 'Terran_Ghost
    'vulture 'Terran_Vulture
-   'goliath 'Terran_Goliath
    'goliath-turret 'Undefined4
    'siege-tank-tank-mode 'Terran_Siege_Tank_Tank_Mode
    'siege-tank-turret-tank-mode 'Undefined6
