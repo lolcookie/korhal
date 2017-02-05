@@ -70,22 +70,33 @@
    12 :wait
    :train :marine
    14 :command-center
-   16 :supply-depot
    :train :marine
-   22 :supply-depot
-   23 :refinery
-   25 :engineering-bay
-   30 :academy
+   15 :supply-depot
+   :train :marine
+   17 :refinery
+   18 :engineering-bay
    :upgrade :infantry-weapons
+   :train :marine
+   19 :academy
+   :train :marine
+   :research :stim-packs
+   :upgrade :u-238-shells
+   22 :supply-depot
+   :train :marine
+   24 :barracks
+   25 :supply-depot
+   :train :medic
+   :train :medic
+   :train :marine
+   30 :barracks
+   :train :marine
    32 :supply-depot
-   :barracks
-   35 :barracks
-   35 :research :stim-packs
+   :train :marine
    40 :barracks
-   :barracks
-   :supply-depot
+   :train :marine
+   40 :barracks
+   :train :marine
    43 :supply-depot
-   47 :upgrade :u-238-shells
   ])
 
 (def test-order
