@@ -89,29 +89,29 @@
     (when (can-afford? :scv)
       (contract-train cc :scv))))
 
-(defn- build-ebay-armory-academy
-  []
-  (when (and (zero? (num-buildings-of-kw :engineering-bay true))
-             (can-afford? :engineering-bay))
-    (build-kw :engineering-bay))
-  (when (and (zero? (num-buildings-of-kw :armory true))
-             (can-afford? :armory))
-    (build-kw :armory)))
-
-(defn- maybe-upgrade
-  []
-  (doseq [engineering-bay (filter can-build-now? (my-engineering-bays))]
-    (cond
-      (can-upgrade-now? :infantry-weapons)(contract-upgrade engineering-bay :infantry-weapons)
-      (can-upgrade-now? :infantry-armor) (contract-upgrade engineering-bay :infantry-armor)))
-  (doseq [armory (filter can-build-now? (my-armories))]
-    (cond
-      (can-upgrade-now? :vehicle-weapons) (contract-upgrade armory :vehicle-weapons)
-      (can-upgrade-now? :vehicle-plating) (contract-upgrade armory :vehicle-plating))))
-  (doseq [academy (filter can-build-now? (my-armories))]
-    (cond
-      (can-upgrade-now? :vehicle-weapons) (contract-upgrade armory :vehicle-weapons)
-      (can-upgrade-now? :vehicle-plating) (contract-upgrade armory :vehicle-plating))))
+; (defn- build-ebay-armory-academy
+;   []
+;   (when (and (zero? (num-buildings-of-kw :engineering-bay true))
+;              (can-afford? :engineering-bay))
+;     (build-kw :engineering-bay))
+;   (when (and (zero? (num-buildings-of-kw :armory true))
+;              (can-afford? :armory))
+;     (build-kw :armory)))
+;
+; (defn- maybe-upgrade
+;   []
+;   (doseq [engineering-bay (filter can-build-now? (my-engineering-bays))]
+;     (cond
+;       (can-upgrade-now? :infantry-weapons)(contract-upgrade engineering-bay :infantry-weapons)
+;       (can-upgrade-now? :infantry-armor) (contract-upgrade engineering-bay :infantry-armor)))
+;   (doseq [armory (filter can-build-now? (my-armories))]
+;     (cond
+;       (can-upgrade-now? :vehicle-weapons) (contract-upgrade armory :vehicle-weapons)
+;       (can-upgrade-now? :vehicle-plating) (contract-upgrade armory :vehicle-plating))))
+;   (doseq [academy (filter can-build-now? (my-academies))]
+;     (cond
+;       (can-upgrade-now? :vehicle-weapons) (contract-upgrade armory :vehicle-weapons)
+;       (can-upgrade-now? :vehicle-plating) (contract-upgrade armory :vehicle-plating))))
 
 (defn- maybe-train-army
   "Train army units from finished structures based on the desired unit
@@ -184,12 +184,11 @@
     (process-build-order-step)
     (do (ensure-enough-depots)
         (maybe-train-army)
-        (maybe-upgrade)
-        (build-ebay-armory-academy))))
+        )))
 
 (defn start-macro-engine! []
   (dosync
-   (commute macro-state assoc-in [:build-order] (build-orders :one-rax-fast-expand-zerg))
+   (commute macro-state assoc-in [:build-order] (build-orders :expand-BO))
    (commute macro-state assoc-in [:tags] {})
    (commute macro-state assoc-in [:frame] 0)
    (commute macro-state assoc-in [:run] true))

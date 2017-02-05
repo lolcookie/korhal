@@ -145,7 +145,7 @@
 
 (defn low-res-walkable?
   ([point] (low-res-walkable? (.getX point) (.getY point)))
-  ([tx ty] (.. api getMap isLowResWalkable tx ty)))
+  ([tx ty] (.isLowResWalkable (.getMap api) tx ty)))
 
 (defn regions [] (.. api getMap getRegions))
 
@@ -156,8 +156,8 @@
 (defn my-start-location [] (.. api getSelf getStartLocation))
 
 (defn ground-distance
-  ([p1 p2] (ground-distance (.getX p1) (.getY p1) (.getX p2) (.getY p2)))
-  ([tx1 ty1 tx2 ty2] (.. api getMap getGroundDistance tx1 ty1 tx2 ty2)))
+  ([p1 p2] (ground-distance (tile-x p1) (tile-y p1) (tile-x p2) (tile-y p2)))
+  ([tx1 ty1 tx2 ty2] (.getGroundDistance (.getMap api) tx1 ty1 tx2 ty2)))
 
 (defn connected?
   ([p1 p2] (connected? (.getX p1) (.getY p1) (.getX p2) (.getY p2)))

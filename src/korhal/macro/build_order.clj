@@ -99,6 +99,22 @@
    43 :supply-depot
   ])
 
+(def expand-BO
+  [8 :supply-depot
+   11 :barracks
+   11 :send-scout
+   12 :wait
+   :train :marine
+   14 :command-center
+   :train :marine
+   15 :supply-depot
+   :train :marine
+   17 :refinery
+   18 :command-center
+   19 :command-center
+   20 :command-center
+])
+
 (def test-order
   [9 :supply-depot
    11 :barracks

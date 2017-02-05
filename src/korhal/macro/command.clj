@@ -42,10 +42,9 @@
             (recur (inc attempt))))))))
 
 (defn nearest-expansion []
-  (let [not-my-base? (fn [base] (or (not= (.x (my-start-location)) (tile-x base))
-                                    (not= (.y (my-start-location)) (tile-y base))))
+  (let [not-my-base? (fn [base] (> (ground-distance (first (my-command-centers)) base) 5.0))
         bases (filter not-my-base? (base-locations))
-        nearest-base (apply min-key (partial dist-tile (first (my-command-centers))) bases)]
+        nearest-base (apply min-key (partial ground-distance (first (my-command-centers))) bases)]
     (when nearest-base nearest-base)))
 
 (defn expand
