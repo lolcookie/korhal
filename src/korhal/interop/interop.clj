@@ -6,18 +6,18 @@
                                                   explosion-types order-types
                                                   unit-type-fn-maps unit-fn-maps
                                                   base-location-fn-maps player-fn-maps]])
-  (:import (jnibwapi.model Map Player Unit BaseLocation Region ChokePoint Bullet)
-           (jnibwapi.types.UnitType$UnitTypes)
-           (jnibwapi.types.UpgradeType$UpgradeTypes)
-           (jnibwapi.types.TechType$TechTypes)
-           (jnibwapi.types.UnitCommandType$UnitCommandTypes)
-           (jnibwapi.types.RaceType$RaceTypes)
-           (jnibwapi.types.UnitSizeType$UnitSizeTypes)
-           (jnibwapi.types.WeaponType$WeaponTypes)
-           (jnibwapi.types.BulletType$BulletTypes)
-           (jnibwapi.types.DamageType$DamageTypes)
-           (jnibwapi.types.ExplosionType$ExplosionTypes)
-           (jnibwapi.types.OrderType$OrderTypes)
+  (:import (bwta BaseLocation BWTA Chokepoint Polygon Region)
+           (bwapi.UnitType)
+           (bwapi.UpgradeType)
+           (bwapi.TechType)
+           (bwapi.UnitCommandType)
+           (bwapi.RaceType)
+           (bwapi.UnitSizeType)
+           (bwapi.WeaponType)
+           (bwapi.BulletType)
+           (bwapi.DamageType)
+           (bwapi.ExplosionType)
+           (bwapi.OrderType)
            (java.awt.Point)))
 
 (declare get-unit-type pixel-x pixel-y tile-x tile-y start-location? can-build-here? get-type-id)
@@ -38,10 +38,10 @@
 
 ;; unit type kw lookup is a special case to add in the minerals and geysers
 (def unit-type-kws
-  (merge {:mineral jnibwapi.types.UnitType$UnitTypes/Resource_Mineral_Field
-          :geyser jnibwapi.types.UnitType$UnitTypes/Resource_Vespene_Geyser}
+  (merge {:mineral bwapi.UnitType/Resource_Mineral_Field
+          :geyser bwapi.UnitType/Resource_Vespene_Geyser}
          (zipmap (map keyword (take-nth 2 unit-types))
-                 (map #(eval `(. jnibwapi.types.UnitType$UnitTypes ~%)) (take-nth 2 (rest unit-types))))))
+                 (map #(eval `(. bwapi.UnitType ~%)) (take-nth 2 (rest unit-types))))))
 
 (defmacro gen-type-ids-map [inject-sym java-type coll]
   `(def ~inject-sym
@@ -56,28 +56,28 @@
      (zipmap (map keyword (take-nth 2 ~coll))
              (map #(eval `(. ~~java-type ~%)) (take-nth 2 (rest ~coll))))))
 
-(gen-type-ids-map unit-type-ids 'jnibwapi.types.UnitType$UnitTypes unit-types)
-(gen-type-ids-map upgrade-type-ids 'jnibwapi.types.UpgradeType$UpgradeTypes upgrade-types)
-(gen-type-ids-map tech-type-ids 'jnibwapi.types.TechType$TechTypes tech-types)
-(gen-type-ids-map unit-command-type-ids 'jnibwapi.types.UnitCommandType$UnitCommandTypes unit-command-types)
-(gen-type-ids-map race-type-ids 'jnibwapi.types.RaceType$RaceTypes race-types)
-(gen-type-ids-map unit-size-type-ids 'jnibwapi.types.UnitSizeType$UnitSizeTypes unit-size-types)
-(gen-type-ids-map weapon-type-ids 'jnibwapi.types.WeaponType$WeaponTypes weapon-types)
-(gen-type-ids-map bullet-type-ids 'jnibwapi.types.BulletType$BulletTypes bullet-types)
-(gen-type-ids-map damage-type-ids 'jnibwapi.types.DamageType$DamageTypes damage-types)
-(gen-type-ids-map explosion-type-ids 'jnibwapi.types.ExplosionType$ExplosionTypes explosion-types)
-(gen-type-ids-map order-type-ids 'jnibwapi.types.OrderType$OrderTypes order-types)
+(gen-type-ids-map unit-type-ids 'bwapi.UnitType unit-types)
+(gen-type-ids-map upgrade-type-ids 'bwapi.UpgradeType upgrade-types)
+(gen-type-ids-map tech-type-ids 'bwapi.TechType tech-types)
+(gen-type-ids-map unit-command-type-ids 'bwapi.UnitCommandType unit-command-types)
+(gen-type-ids-map race-type-ids 'bwapi.RaceType race-types)
+(gen-type-ids-map unit-size-type-ids 'bwapi.UnitSizeType unit-size-types)
+(gen-type-ids-map weapon-type-ids 'bwapi.WeaponType weapon-types)
+(gen-type-ids-map bullet-type-ids 'bwapi.BulletType bullet-types)
+(gen-type-ids-map damage-type-ids 'bwapi.DamageType damage-types)
+(gen-type-ids-map explosion-type-ids 'bwapi.ExplosionType explosion-types)
+(gen-type-ids-map order-type-ids 'bwapi.OrderType order-types)
 
-(gen-type-kw-map upgrade-type-kws 'jnibwapi.types.UpgradeType$UpgradeTypes upgrade-types)
-(gen-type-kw-map tech-type-kws 'jnibwapi.types.TechType$TechTypes tech-types)
-(gen-type-kw-map unit-command-type-kws 'jnibwapi.types.UnitCommandType$UnitCommandTypes unit-command-types)
-(gen-type-kw-map race-type-kws 'jnibwapi.types.RaceType$RaceTypes race-types)
-(gen-type-kw-map unit-size-type-kws 'jnibwapi.types.UnitSizeType$UnitSizeTypes unit-size-types)
-(gen-type-kw-map weapon-type-kws 'jnibwapi.types.WeaponType$WeaponTypes weapon-types)
-(gen-type-kw-map bullet-type-kws 'jnibwapi.types.BulletType$BulletTypes bullet-types)
-(gen-type-kw-map damage-type-kws 'jnibwapi.types.DamageType$DamageTypes damage-types)
-(gen-type-kw-map explosion-type-kws 'jnibwapi.types.ExplosionType$ExplosionTypes explosion-types)
-(gen-type-kw-map order-type-kws 'jnibwapi.types.OrderType$OrderTypes order-types)
+(gen-type-kw-map upgrade-type-kws 'bwapi.UpgradeType upgrade-types)
+(gen-type-kw-map tech-type-kws 'bwapi.TechType tech-types)
+(gen-type-kw-map unit-command-type-kws 'bwapi.UnitCommandType unit-command-types)
+(gen-type-kw-map race-type-kws 'bwapi.RaceType race-types)
+(gen-type-kw-map unit-size-type-kws 'bwapi.UnitSizeType unit-size-types)
+(gen-type-kw-map weapon-type-kws 'bwapi.WeaponType weapon-types)
+(gen-type-kw-map bullet-type-kws 'bwapi.BulletType bullet-types)
+(gen-type-kw-map damage-type-kws 'bwapi.DamageType damage-types)
+(gen-type-kw-map explosion-type-kws 'bwapi.ExplosionType explosion-types)
+(gen-type-kw-map order-type-kws 'bwapi.OrderType order-types)
 
 ;; common calls to get state vars and collections
 
@@ -96,11 +96,11 @@
 (defn bullets [] (.getAllBullets api))
 
 (defn minerals []
-  (filter #(= (.getTypeID %) (.getID jnibwapi.types.UnitType$UnitTypes/Resource_Mineral_Field))
+  (filter #(= (.getTypeID %) (.getID bwapi.UnitType/Resource_Mineral_Field))
           (.getNeutralUnits api)))
 
 (defn geysers []
-  (filter #(= (.getTypeID %) (.getID jnibwapi.types.UnitType$UnitTypes/Resource_Vespene_Geyser))
+  (filter #(= (.getTypeID %) (.getID bwapi.UnitType/Resource_Vespene_Geyser))
           (.getNeutralUnits api)))
 
 ;; map data
@@ -297,30 +297,30 @@
 
 (defn mineral-price [obj]
   (cond
-   (instance? jnibwapi.types.UnitType obj) (.getMineralPrice obj)
-   (instance? jnibwapi.types.TechType obj) (.getMineralPrice obj)
-   (instance? jnibwapi.types.UpgradeType obj) (+ (.getMineralPriceBase obj)
+   (instance? bwapi.UnitType obj) (.getMineralPrice obj)
+   (instance? bwapi.TechType obj) (.getMineralPrice obj)
+   (instance? bwapi.UpgradeType obj) (+ (.getMineralPriceBase obj)
                                                  (* (upgrade-level (get-self) obj) (.getMineralPriceFactor obj)))))
 
 (defn gas-price [obj]
   (cond
-   (instance? jnibwapi.types.UnitType obj) (.getGasPrice obj)
-   (instance? jnibwapi.types.TechType obj) (.getGasPrice obj)
-   (instance? jnibwapi.types.UpgradeType obj) (+ (.getGasPriceBase obj)
+   (instance? bwapi.UnitType obj) (.getGasPrice obj)
+   (instance? bwapi.TechType obj) (.getGasPrice obj)
+   (instance? bwapi.UpgradeType obj) (+ (.getGasPriceBase obj)
                                                  (* (upgrade-level (get-self) obj) (.getGasPriceFactor obj)))))
 
 (defn supply-required [obj]
   (cond
-   (instance? jnibwapi.types.UnitType obj) (/ (.getSupplyRequired obj) 2)
-   (instance? jnibwapi.types.TechType obj) 0
-   (instance? jnibwapi.types.UpgradeType obj) 0))
+   (instance? bwapi.UnitType obj) (/ (.getSupplyRequired obj) 2)
+   (instance? bwapi.TechType obj) 0
+   (instance? bwapi.UpgradeType obj) 0))
 
 (defn my-unit? [unit]
   (= (get-id (get-self)) (player-id unit)))
 
 ;; type predicates, e.g. is-drone?
 (doseq [[n t] (partition 2 unit-types)]
-  (let [class-type (eval `(.getID ~(symbol (str "jnibwapi.types.UnitType$UnitTypes/" t))))]
+  (let [class-type (eval `(.getID ~(symbol (str "bwapi.UnitType/" t))))]
     (intern *ns*
             (symbol (str "is-" n "?"))
             (fn [unit] (= (.getTypeID unit) class-type)))))

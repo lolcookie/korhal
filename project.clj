@@ -4,11 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :source-paths ["src"]
-  :java-source-paths ["jnibwapi"]
+  :resource-paths ["lib/bwmirror_v2_5.jar"]
   :main korhal.core
   :aot [korhal.core]
-  :jvm-opts ["-Djava.library.path=jnibwapi/release"]
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.async "0.1.242.0-44b1e3-alpha"]
-                 [org.clojure/tools.nrepl "0.2.3"]
-                 [org.clojure/core.logic "0.8.4"]])
+  :jvm-opts [""]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/tools.nrepl "0.2.12"]
+                 [org.clojure/core.logic "0.8.11"]])
