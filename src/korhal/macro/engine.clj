@@ -22,10 +22,10 @@
 (defn- retry-build
   ([builder tag] (retry-build builder tag 0))
   ([builder tag jitter-amount]
-     (macro-tag-unit! builder (merge tag {:retry (inc (:retry tag))}))
-     (let [tx (+ (first (:args tag)) (* (Math/pow -1 (rand-int 2)) jitter-amount))
-           ty (+ (second (:args tag)) (* (Math/pow -1 (rand-int 2)) jitter-amount))]
-       (with-api (build builder tx ty (last (:args tag)))))))
+   (macro-tag-unit! builder (merge tag {:retry (inc (:retry tag))}))
+   (let [tx (+ (first (:args tag)) (* (Math/pow -1 (rand-int 2)) jitter-amount))
+         ty (+ (second (:args tag)) (* (Math/pow -1 (rand-int 2)) jitter-amount))]
+     (with-api (build builder tx ty (last (:args tag)))))))
 
 (defn- retry-failed-addons
   "Addons that could not be built should be retried."
@@ -156,17 +156,17 @@
   (let [assigned-to-refinery
         (fn [refinery scv]
           (and (completed? scv) (= refinery (:assigned (get-micro-tag scv)))))]
-  (doseq [refinery (filter completed? (my-refineries))]
-    (let [assigned (filter (partial assigned-to-refinery refinery) (my-scvs))
-          num-to-assign (max 0 (- 3 (count assigned)))]
-      (if (> (count assigned) 3)
-        (let [reassign (first (filter #(not= (order-id %) (get-id (:harvest-gas order-type-kws))) assigned))]
-          (micro-tag-unit! reassign nil)
-          (macro-tag-unit! reassign nil)
-          (with-api (stop reassign)))
-        (dotimes [n num-to-assign]
-          (let [scv (assign-spare-scv! nil)]
-            (micro-tag-unit! scv {:role :gas :assigned refinery}))))))))
+   (doseq [refinery (filter completed? (my-refineries))]
+     (let [assigned (filter (partial assigned-to-refinery refinery) (my-scvs))
+           num-to-assign (max 0 (- 3 (count assigned)))]
+       (if (> (count assigned) 3)
+         (let [reassign (first (filter #(not= (order-id %) (get-id (:harvest-gas order-type-kws))) assigned))]
+           (micro-tag-unit! reassign nil)
+           (macro-tag-unit! reassign nil)
+           (with-api (stop reassign)))
+         (dotimes [n num-to-assign]
+           (let [scv (assign-spare-scv! nil)]
+             (micro-tag-unit! scv {:role :gas :assigned refinery}))))))))
 
 (defn run-macro-engine
   "Issue commands based on the current state of the game and the macro
@@ -183,8 +183,8 @@
   (if (seq (:build-order @macro-state))
     (process-build-order-step)
     (do (ensure-enough-depots)
-        (maybe-train-army)
-        )))
+        (maybe-train-army))))
+
 
 (defn start-macro-engine! []
   (dosync
@@ -198,9 +198,9 @@
                 (if (and (> frame (:frame @macro-state)) (not @repl-control))
                   (do (try
                         (run-macro-engine)
-                      (catch Exception e
-                        (println "Macro engine exception!")
-                        (.printStackTrace e)))
+                       (catch Exception e
+                         (println "Macro engine exception!")
+                         (.printStackTrace e)))
                       (dosync
                        (commute macro-state assoc-in [:frame] frame)))
                   (Thread/sleep 1))

@@ -4,9 +4,9 @@
   ['marine 'Terran_Marine
    'ghost 'Terran_Ghost
    'vulture 'Terran_Vulture
-   'goliath-turret 'Undefined4
+   'goliath 'Terran_Goliath
    'siege-tank-tank-mode 'Terran_Siege_Tank_Tank_Mode
-   'siege-tank-turret-tank-mode 'Undefined6
+   'siege-tank-siege-mode 'Terran_Siege_Tank_Siege_Mode
    'scv 'Terran_SCV
    'wraith 'Terran_Wraith
    'science-vessel 'Terran_Science_Vessel
@@ -14,8 +14,6 @@
    'battlecruiser 'Terran_Battlecruiser
    'spider-mine 'Terran_Vulture_Spider_Mine
    'nuclear-missile 'Terran_Nuclear_Missile
-   'siege-tank-siege-mode 'Terran_Siege_Tank_Siege_Mode
-   'siege-tank-turret-siege-mode 'Undefined31
    'firebat 'Terran_Firebat
    'scanner-sweep 'Spell_Scanner_Sweep
    'medic 'Terran_Medic
@@ -414,11 +412,9 @@
    'tower-guard 'TowerGuard
    'vulture-mine 'VultureMine
    'nothing 'Nothing
-   'nothing-3 'Nothing3
    'cast-infestation 'CastInfestation
    'infesting-command-center 'InfestingCommandCenter
    'place-building 'PlaceBuilding
-   'build-protoss-2 'BuildProtoss2
    'constructing-building 'ConstructingBuilding
    'repair 'Repair
    'place-addon 'PlaceAddon
@@ -478,7 +474,7 @@
    'stopping-creep-growth 'StoppingCreepGrowth
    'guardian-aspect 'GuardianAspect
    'archon-warp 'ArchonWarp
-   'completing-archon-summon 'CompletingArchonsummon
+   'completing-archon-summon 'CompletingArchonSummon
    'hold-position 'HoldPosition
    'cloak 'Cloak
    'decloak 'Decloak
@@ -504,7 +500,7 @@
    'place-mine 'PlaceMine
    'right-click-action 'RightClickAction
    'cast-recall 'CastRecall
-   'teleport-to-location 'TeleporttoLocation
+   'teleport 'Teleport
    'cast-scanner-sweep 'CastScannerSweep
    'scanner 'Scanner
    'cast-defensive-matrix 'CastDefensiveMatrix
@@ -519,7 +515,7 @@
    'reset-collision 'ResetCollision
    'patrol 'Patrol
    'ctf-cop-init 'CTFCOPInit
-   'ctf-cop-1 'CTFCOP1
+   'ctf-cop-started 'CTFCOPStarted
    'ctf-cop-2 'CTFCOP2
    'computer-ai 'ComputerAI
    'atk-move-ep 'AtkMoveEP
@@ -529,20 +525,20 @@
    'rescue-passive 'RescuePassive
    'neutral 'Neutral
    'computer-return 'ComputerReturn
-   'self-destructing 'SelfDestrucing
+   'self-destructing 'SelfDestructing
    'critter 'Critter
    'hidden-gun 'HiddenGun
    'open-door 'OpenDoor
    'close-door 'CloseDoor
    'hide-trap 'HideTrap
    'reveal-trap 'RevealTrap
-   'enable-doodad 'Enabledoodad
-   'disable-doodad 'Disabledoodad
-   'warpin 'Warpin
+   'enable-doodad 'EnableDoodad
+   'disable-doodad 'DisableDoodad
+   'warpin 'WarpIn
    'medic 'Medic
-   'medic-heal-1 'MedicHeal1
+   'medic-heal 'MedicHeal
+   'medic-heal-to-idle 'MedicHealToIdle
    'heal-move 'HealMove
-   'medic-heal-2 'MedicHeal2
    'cast-restoration 'CastRestoration
    'cast-disruption-web 'CastDisruptionWeb
    'cast-mind-control 'CastMindControl

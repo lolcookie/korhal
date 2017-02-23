@@ -20,14 +20,13 @@
                                            contract-add-new-building
                                            contract-display draw-contract-display]])
   (:import (clojure.lang.IDeref)
-           (jnibwapi.JNIBWAPI)
-           (jnibwapi.BWAPIEventListener)))
+           (bwapi.BWEventListener)))
 
 (def run-repl? true)
 
 (gen-class
  :name "korhal.core"
- :implements [jnibwapi.BWAPIEventListener clojure.lang.IDeref]
+ :implements [bwapi.BWEventListener clojure.lang.IDeref]
  :state state
  :init init
  :main true
@@ -38,7 +37,7 @@
 
 (defn korhal-main [& args]
   (let [ai (korhal.core.)
-        api (jnibwapi.JNIBWAPI. ai)]
+        api (.. (new bwapi.Mirror) (startGame) (setEventListener ai))]
     (swap! (.state ai) swap-key :api api)
     (bind-api! api)
     (start)))
@@ -46,10 +45,10 @@
 (defn korhal-init []
   [[] (atom {})])
 
-(defn korhal-connected [this]
+(defn korhal-startGame [this]
   (load-type-data))
 
-(defn korhal-gameStarted [this]
+(defn korhal-onStart [this]
   (println "Game Started")
   (enable-user-input)
   (set-game-speed 20)
@@ -61,7 +60,7 @@
     (repl-control! false)
     (start-repl! 7777)))
 
-(defn korhal-gameUpdate [this]
+(defn korhal-onFrame [this]
   ;; we have to do this here instead of korhal-gameStarted because frame does not
   ;; get reset to 0 until now when restarting a game
   (when (zero? (frame-count))

@@ -6,19 +6,20 @@
                                                   explosion-types order-types
                                                   unit-type-fn-maps unit-fn-maps
                                                   base-location-fn-maps player-fn-maps]])
-  (:import (bwta BaseLocation BWTA Chokepoint Polygon Region)
-           (bwapi.UnitType)
-           (bwapi.UpgradeType)
-           (bwapi.TechType)
-           (bwapi.UnitCommandType)
-           (bwapi.RaceType)
-           (bwapi.UnitSizeType)
-           (bwapi.WeaponType)
-           (bwapi.BulletType)
-           (bwapi.DamageType)
-           (bwapi.ExplosionType)
-           (bwapi.OrderType)
-           (java.awt.Point)))
+  (:import  (bwta BaseLocation BWTA Chokepoint Polygon Region)
+            (bwapi Player Unit Bullet)
+            (bwapi.UnitType)
+            (bwapi.UpgradeType)
+            (bwapi.TechType)
+            (bwapi.UnitCommandType)
+            (bwapi.RaceType)
+            (bwapi.UnitSizeType)
+            (bwapi.WeaponType)
+            (bwapi.BulletType)
+            (bwapi.DamageType)
+            (bwapi.ExplosionType)
+            (bwapi.OrderType)
+            (java.awt.Point)))
 
 (declare get-unit-type pixel-x pixel-y tile-x tile-y start-location? can-build-here? get-type-id)
 
@@ -36,6 +37,8 @@
 
 ;; type definitions
 
+(defn getID [obj] (.hashCode obj))
+
 ;; unit type kw lookup is a special case to add in the minerals and geysers
 (def unit-type-kws
   (merge {:mineral bwapi.UnitType/Resource_Mineral_Field
@@ -45,7 +48,7 @@
 
 (defmacro gen-type-ids-map [inject-sym java-type coll]
   `(def ~inject-sym
-     (->> (map #(vector (eval `(.getID ~(symbol (str ~java-type "/" %))))
+     (->> (map #(vector (eval `(getID ~(symbol (str ~java-type "/" %))))
                         (eval (symbol (str ~java-type "/" %))))
                (take-nth 2 (rest ~coll)))
           (flatten)
@@ -56,28 +59,30 @@
      (zipmap (map keyword (take-nth 2 ~coll))
              (map #(eval `(. ~~java-type ~%)) (take-nth 2 (rest ~coll))))))
 
+
+
 (gen-type-ids-map unit-type-ids 'bwapi.UnitType unit-types)
 (gen-type-ids-map upgrade-type-ids 'bwapi.UpgradeType upgrade-types)
 (gen-type-ids-map tech-type-ids 'bwapi.TechType tech-types)
 (gen-type-ids-map unit-command-type-ids 'bwapi.UnitCommandType unit-command-types)
-(gen-type-ids-map race-type-ids 'bwapi.RaceType race-types)
+(gen-type-ids-map race-type-ids 'bwapi.Race race-types)
 (gen-type-ids-map unit-size-type-ids 'bwapi.UnitSizeType unit-size-types)
 (gen-type-ids-map weapon-type-ids 'bwapi.WeaponType weapon-types)
 (gen-type-ids-map bullet-type-ids 'bwapi.BulletType bullet-types)
 (gen-type-ids-map damage-type-ids 'bwapi.DamageType damage-types)
 (gen-type-ids-map explosion-type-ids 'bwapi.ExplosionType explosion-types)
-(gen-type-ids-map order-type-ids 'bwapi.OrderType order-types)
+(gen-type-ids-map order-type-ids 'bwapi.Order order-types)
 
 (gen-type-kw-map upgrade-type-kws 'bwapi.UpgradeType upgrade-types)
 (gen-type-kw-map tech-type-kws 'bwapi.TechType tech-types)
 (gen-type-kw-map unit-command-type-kws 'bwapi.UnitCommandType unit-command-types)
-(gen-type-kw-map race-type-kws 'bwapi.RaceType race-types)
+(gen-type-kw-map race-type-kws 'bwapi.Race race-types)
 (gen-type-kw-map unit-size-type-kws 'bwapi.UnitSizeType unit-size-types)
 (gen-type-kw-map weapon-type-kws 'bwapi.WeaponType weapon-types)
 (gen-type-kw-map bullet-type-kws 'bwapi.BulletType bullet-types)
 (gen-type-kw-map damage-type-kws 'bwapi.DamageType damage-types)
 (gen-type-kw-map explosion-type-kws 'bwapi.ExplosionType explosion-types)
-(gen-type-kw-map order-type-kws 'bwapi.OrderType order-types)
+(gen-type-kw-map order-type-kws 'bwapi.Order order-types)
 
 ;; common calls to get state vars and collections
 
@@ -96,11 +101,11 @@
 (defn bullets [] (.getAllBullets api))
 
 (defn minerals []
-  (filter #(= (.getTypeID %) (.getID bwapi.UnitType/Resource_Mineral_Field))
+  (filter #(= (.getTypeID %) (getID bwapi.UnitType/Resource_Mineral_Field))
           (.getNeutralUnits api)))
 
 (defn geysers []
-  (filter #(= (.getTypeID %) (.getID bwapi.UnitType/Resource_Vespene_Geyser))
+  (filter #(= (.getTypeID %) (getID bwapi.UnitType/Resource_Vespene_Geyser))
           (.getNeutralUnits api)))
 
 ;; map data
@@ -118,16 +123,16 @@
 (defn map-width
   ([] (map-width :pixel))
   ([type]
-     (case type
-       :pixel (* 32 (.. api getMap getWidth))
-       :tile (.. api getMap getWidth))))
+   (case type
+     :pixel (* 32 (.. api getMap getWidth))
+     :tile (.. api getMap getWidth))))
 
 (defn map-height
   ([] (map-height :pixel))
   ([type]
-     (case type
-       :pixel (* 32 (.. api getMap getHeight))
-       :tile (.. api getMap getHeight))))
+   (case type
+     :pixel (* 32 (.. api getMap getHeight))
+     :tile (.. api getMap getHeight))))
 
 (defn map-tile-height [tx ty] (.getHeight (.getMap api) tx ty))
 
@@ -185,20 +190,20 @@
 (define-player-fns)
 
 (defn researched?
-  ([tech-kw] (.hasResearched (.getSelf api) (.getID (tech-type-kws tech-kw))))
-  ([player tech] (.hasResearched player (.getID tech))))
+  ([tech-kw] (.hasResearched (.getSelf api) (getID (tech-type-kws tech-kw))))
+  ([player tech] (.hasResearched player (getID tech))))
 
 (defn researching?
-  ([tech-kw] (.isResearching (.getSelf api) (.getID (tech-type-kws tech-kw))))
-  ([player tech] (.isResearching player (.getID tech))))
+  ([tech-kw] (.isResearching (.getSelf api) (getID (tech-type-kws tech-kw))))
+  ([player tech] (.isResearching player (getID tech))))
 
 (defn upgrade-level
-  ([upgrade-kw] (.upgradeLevel (.getSelf api) (.getID (upgrade-type-kws upgrade-kw))))
-  ([player upgrade] (.upgradeLevel player (.getID upgrade))))
+  ([upgrade-kw] (.upgradeLevel (.getSelf api) (getID (upgrade-type-kws upgrade-kw))))
+  ([player upgrade] (.upgradeLevel player (getID upgrade))))
 
 (defn upgrading?
-  ([upgrade-kw] (.isUpgrading (.getSelf api) (.getID (upgrade-type-kws upgrade-kw))))
-  ([player upgrade] (.isUpgrading player (.getID upgrade))))
+  ([upgrade-kw] (.isUpgrading (.getSelf api) (getID (upgrade-type-kws upgrade-kw))))
+  ([player upgrade] (.isUpgrading player (getID upgrade))))
 
 ;; generate base location methods
 
@@ -239,43 +244,43 @@
 
 ;; common API commands shared among multiple types
 
-(defn get-id [obj] (.getID obj))
+(defn get-id [obj] (getID obj))
 
 (defn get-unit-type [unit-or-unit-type]
   (if (instance? Unit unit-or-unit-type)
     (.getUnitType api (.getTypeID unit-or-unit-type))
-    (.getUnitType api (.getID unit-or-unit-type))))
+    (.getUnitType api (getID unit-or-unit-type))))
 
 (defn get-unit-type-kw [unit-or-unit-type]
   (let [unit-type (get-unit-type unit-or-unit-type)
         static-type (unit-type-ids (get-id unit-type))]
     ((map-invert unit-type-kws) static-type)))
 
-(defn get-tech-type [tech] (.getTechType api (.getID tech)))
+(defn get-tech-type [tech] (.getTechType api (getID tech)))
 
-(defn get-upgrade-type [upgrade] (.getUpgradeType api (.getID upgrade)))
+(defn get-upgrade-type [upgrade] (.getUpgradeType api (getID upgrade)))
 
 (defn get-weapon-type [weapon-or-id]
   (.getWeaponType api (if (number? weapon-or-id)
                         weapon-or-id
-                        (.getID weapon-or-id))))
+                        (getID weapon-or-id))))
 
 (defn get-damage-type [damage-or-id]
   (.getDamageType api
                   (if (number? damage-or-id)
                     damage-or-id
-                    (.getID damage-or-id))))
+                    (getID damage-or-id))))
 
 (defn get-explosion-type [explosion-or-id]
   (.getExplosionType api
                      (if (number? explosion-or-id)
                        explosion-or-id
-                       (.getID explosion-or-id))))
+                       (getID explosion-or-id))))
 
 (defn get-type-id [obj-or-unit-type]
   (if (or (instance? Unit obj-or-unit-type) (instance? Bullet obj-or-unit-type))
     (.getTypeID obj-or-unit-type)
-    (.getID obj-or-unit-type)))
+    (getID obj-or-unit-type)))
 
 (defn pixel-x [obj] (.getX obj))
 
@@ -300,14 +305,14 @@
    (instance? bwapi.UnitType obj) (.getMineralPrice obj)
    (instance? bwapi.TechType obj) (.getMineralPrice obj)
    (instance? bwapi.UpgradeType obj) (+ (.getMineralPriceBase obj)
-                                                 (* (upgrade-level (get-self) obj) (.getMineralPriceFactor obj)))))
+                                        (* (upgrade-level (get-self) obj) (.getMineralPriceFactor obj)))))
 
 (defn gas-price [obj]
   (cond
    (instance? bwapi.UnitType obj) (.getGasPrice obj)
    (instance? bwapi.TechType obj) (.getGasPrice obj)
    (instance? bwapi.UpgradeType obj) (+ (.getGasPriceBase obj)
-                                                 (* (upgrade-level (get-self) obj) (.getGasPriceFactor obj)))))
+                                        (* (upgrade-level (get-self) obj) (.getGasPriceFactor obj)))))
 
 (defn supply-required [obj]
   (cond
@@ -320,7 +325,7 @@
 
 ;; type predicates, e.g. is-drone?
 (doseq [[n t] (partition 2 unit-types)]
-  (let [class-type (eval `(.getID ~(symbol (str "bwapi.UnitType/" t))))]
+  (let [class-type (eval `(getID ~(symbol (str "bwapi.UnitType/" t))))]
     (intern *ns*
             (symbol (str "is-" n "?"))
             (fn [unit] (= (.getTypeID unit) class-type)))))
@@ -359,145 +364,145 @@
 
 (defn my-units-id [id] (filter #(= (.getTypeID %) id) (my-units)))
 
-(defn my-units-kw [kw] (filter #(= (.getTypeID %) (.getID (kw unit-type-kws))) (my-units)))
+(defn my-units-kw [kw] (filter #(= (.getTypeID %) (getID (kw unit-type-kws))) (my-units)))
 
 (defn my-buildings [] (filter building? (my-units)))
 
 (defn my-buildings-id [id] (filter #(= (.getTypeID %) id) (my-buildings)))
 
-(defn my-buildings-kw [kw] (filter #(= (.getTypeID %) (.getID (kw unit-type-kws))) (my-buildings)))
+(defn my-buildings-kw [kw] (filter #(= (.getTypeID %) (getID (kw unit-type-kws))) (my-buildings)))
 
 ;; API unit commands
 
 (defn attack
-  ([attacking-unit target-unit] (.attack api (.getID attacking-unit) (.getID target-unit)))
-  ([attacking-unit px py] (.attack api (.getID attacking-unit) px py)))
+  ([attacking-unit target-unit] (.attack api (getID attacking-unit) (getID target-unit)))
+  ([attacking-unit px py] (.attack api (getID attacking-unit) px py)))
 
 (defn build
   ([builder point to-build] (build builder (.x point) (.y point) to-build))
-  ([builder tx ty to-build] (.build api (.getID builder) tx ty
-                                    (.getID (to-build unit-type-kws)))))
+  ([builder tx ty to-build] (.build api (getID builder) tx ty
+                                    (getID (to-build unit-type-kws)))))
 
 (defn build-addon [building to-build]
-  (.buildAddon api (.getID building) (.getID (to-build unit-type-kws))))
+  (.buildAddon api (getID building) (getID (to-build unit-type-kws))))
 
 (defn train [building to-train]
-  (.train api (.getID building) (.getID (to-train unit-type-kws))))
+  (.train api (getID building) (getID (to-train unit-type-kws))))
 
 (defn morph [unit morph-to]
-  (.morph api (.getID unit) (.getID (morph-to unit-type-kws))))
+  (.morph api (getID unit) (getID (morph-to unit-type-kws))))
 
 (defn research [unit to-research]
-  (.research api (.getID unit) (.getID (to-research tech-type-kws))))
+  (.research api (getID unit) (getID (to-research tech-type-kws))))
 
 (defn upgrade [unit to-upgrade]
-  (.upgrade api (.getID unit) (.getID (to-upgrade upgrade-type-kws))))
+  (.upgrade api (getID unit) (getID (to-upgrade upgrade-type-kws))))
 
-(defn set-rally-point
-  ([rally-unit target-unit-or-point]
-     (cond
-      (instance? java.awt.Point target-unit-or-point) (set-rally-point rally-unit
-                                                                       (.x target-unit-or-point)
-                                                                       (.y target-unit-or-point))
-      :else (.setRallyPoint api (.getID rally-unit) (.getID target-unit-or-point))))
-  ([rally-unit px py] (.setRallyPoint api (.getID rally-unit) px py)))
-
-(defn move
-  ([move-unit target-unit-or-point]
-     (cond
-      (instance? java.awt.Point target-unit-or-point) (move move-unit
-                                                            (.x target-unit-or-point)
-                                                            (.y target-unit-or-point))
-      :else (.move api (.getID move-unit) (.getX target-unit-or-point) (.getY target-unit-or-point))))
-  ([move-unit px py] (.move api (.getID move-unit) px py)))
+; (defn set-rally-point
+;   ([rally-unit target-unit-or-point
+;      (cond
+;       (instance? java.awt.Point target-unit-or-point) (set-rally-point rally-unit
+;                                                                        (.x target-unit-or-point)
+;                                                                        (.y target-unit-or-point))
+;       :else (.setRallyPoint api (rally-unit) (target-unit-or-point)))])
+;   ([rally-unit px py] (.setRallyPoint api (rally-unit) px py)))
+;
+; (defn move
+;   ([move-unit target-unit-or-point
+;      (cond
+;       (instance? java.awt.Point target-unit-or-point) (move move-unit
+;                                                             (.x target-unit-or-point)
+;                                                             (.y target-unit-or-point))
+;       :else (.move api (getID move-unit) (.getX target-unit-or-point) (.getY target-unit-or-point)))])
+;   ([move-unit px py] (.move api (getID move-unit) px py)))
 
 (defn patrol
   ([patrol-unit target-unit-or-point]
-     (cond
-      (instance? java.awt.Point target-unit-or-point) (patrol patrol-unit
-                                                              (.x target-unit-or-point)
-                                                              (.y target-unit-or-point))
-      :else (.patrol api (.getID patrol-unit) (.getX target-unit-or-point) (.getY target-unit-or-point))))
-  ([patrol-unit px py] (.patrol api (.getID patrol-unit) px py)))
+   (cond
+    (instance? java.awt.Point target-unit-or-point) (patrol patrol-unit
+                                                            (.x target-unit-or-point)
+                                                            (.y target-unit-or-point))
+    :else (.patrol api (getID patrol-unit) (.getX target-unit-or-point) (.getY target-unit-or-point))))
+  ([patrol-unit px py] (.patrol api (getID patrol-unit) px py)))
 
-(defn hold-position [unit] (.holdPosition api (.getID unit)))
+(defn hold-position [unit] (.holdPosition api (getID unit)))
 
-(defn stop [unit] (.stop api (.getID unit)))
+(defn stop [unit] (.stop api (getID unit)))
 
-(defn follow [follow-unit target-unit] (.follow api (.getID follow-unit) (.getID target-unit)))
+(defn follow [follow-unit target-unit] (.follow api (getID follow-unit) (getID target-unit)))
 
-(defn gather [gather-unit target-unit] (.gather api (.getID gather-unit) (.getID target-unit)))
+(defn gather [gather-unit target-unit] (.gather api (getID gather-unit) (getID target-unit)))
 
 (defn return-cargo [unit] (.returnCargo api unit))
 
-(defn repair [repair-unit target-unit] (.repair api (.getID repair-unit) (.getID target-unit)))
+(defn repair [repair-unit target-unit] (.repair api (getID repair-unit) (getID target-unit)))
 
-(defn burrow [unit] (.burrow api (.getID unit)))
+(defn burrow [unit] (.burrow api (getID unit)))
 
-(defn unburrow [unit] (.unburrow api (.getID unit)))
+(defn unburrow [unit] (.unburrow api (getID unit)))
 
-(defn cloak [unit] (.cloak api (.getID unit)))
+(defn cloak [unit] (.cloak api (getID unit)))
 
-(defn decloak [unit] (.decloak api (.getID unit)))
+(defn decloak [unit] (.decloak api (getID unit)))
 
-(defn siege [unit] (.siege api (.getID unit)))
+(defn siege [unit] (.siege api (getID unit)))
 
-(defn unsiege [unit] (.unsiege api (.getID unit)))
+(defn unsiege [unit] (.unsiege api (getID unit)))
 
-(defn lift [unit] (.lift api (.getID unit)))
+(defn lift [unit] (.lift api (getID unit)))
 
 (defn land
   ([unit point] (land unit (.x point) (.y point)))
-  ([unit tx ty] (.land api (.getID unit) tx ty)))
+  ([unit tx ty] (.land api (getID unit) tx ty)))
 
-(defn load* [loading-unit target-unit] (.load api (.getID loading-unit) (.getID target-unit)))
+(defn load* [loading-unit target-unit] (.load api (getID loading-unit) (getID target-unit)))
 
-(defn unload [unloading-unit target-unit] (.unload api (.getID unloading-unit) (.getID target-unit)))
+(defn unload [unloading-unit target-unit] (.unload api (getID unloading-unit) (getID target-unit)))
 
 (defn unload-all
-  ([unit] (.unloadAll api (.getID unit)))
+  ([unit] (.unloadAll api (getID unit)))
   ([unit point] (unload-all unit (.x point) (.y point)))
-  ([unit tx ty] (.unloadAll api (.getID unit) tx ty)))
+  ([unit tx ty] (.unloadAll api (getID unit) tx ty)))
 
 (defn right-click
   ([unit target-unit-or-point]
-     (cond
-      (instance? java.awt.Point target-unit-or-point) (right-click unit
-                                                                   (.x target-unit-or-point)
-                                                                   (.y target-unit-or-point))
-      :else (.rightClick api (.getID unit) (.getID target-unit-or-point))))
-  ([unit px py] (.rightClick api (.getID unit) px py)))
+   (cond
+    (instance? java.awt.Point target-unit-or-point) (right-click unit
+                                                                 (.x target-unit-or-point)
+                                                                 (.y target-unit-or-point))
+    :else (.rightClick api (getID unit) (getID target-unit-or-point))))
+  ([unit px py] (.rightClick api (getID unit) px py)))
 
-(defn halt-construction [unit] (.haltConstruction api (.getID unit)))
+(defn halt-construction [unit] (.haltConstruction api (getID unit)))
 
-(defn cancel-construction [unit] (.cancelConstrution api (.getID unit)))
+(defn cancel-construction [unit] (.cancelConstrution api (getID unit)))
 
-(defn cancel-addon [unit] (.cancelAddon api (.getID unit)))
+(defn cancel-addon [unit] (.cancelAddon api (getID unit)))
 
 (defn cancel-train
-  ([unit] (.cancelTrain api (.getID unit) (dec (training-queue-size unit)))) ;; cancels last slot being used
-  ([unit slot] (.cancelTrain api (.getID unit) slot)))
+  ([unit] (.cancelTrain api (getID unit) (dec (training-queue-size unit)))) ;; cancels last slot being used
+  ([unit slot] (.cancelTrain api (getID unit) slot)))
 
-(defn cancel-morph [unit] (.cancelMorph api (.getID unit)))
+(defn cancel-morph [unit] (.cancelMorph api (getID unit)))
 
-(defn cancel-research [unit] (.cancelResearch api (.getID unit)))
+(defn cancel-research [unit] (.cancelResearch api (getID unit)))
 
-(defn cancel-upgrade [unit] (.cancelUpgrade api (.getID unit)))
+(defn cancel-upgrade [unit] (.cancelUpgrade api (getID unit)))
 
 (defn use-tech
-  ([unit tech] (.useTech api (.getID unit) (.getID tech)))
+  ([unit tech] (.useTech api (getID unit) (getID tech)))
   ([unit tech target-unit-or-point]
-     (cond
-      (instance? java.awt.Point target-unit-or-point) (use-tech unit
-                                                                tech
-                                                                (.x target-unit-or-point)
-                                                                (.y target-unit-or-point))
-      :else (.useTech api (.getID unit) (.getID tech) (.getID target-unit-or-point))))
-  ([unit tech px py] (.useTech api (.getID unit) (.getID tech) px py)))
+   (cond
+    (instance? java.awt.Point target-unit-or-point) (use-tech unit
+                                                              tech
+                                                              (.x target-unit-or-point)
+                                                              (.y target-unit-or-point))
+    :else (.useTech api (getID unit) (getID tech) (getID target-unit-or-point))))
+  ([unit tech px py] (.useTech api (getID unit) (getID tech) px py)))
 
 (defn place-cop
   ([unit point] (place-cop unit (.x point) (.y point)))
-  ([unit tx ty] (.placeCOP api (.getID unit) tx ty)))
+  ([unit tx ty] (.placeCOP api (getID unit) tx ty)))
 
 ;; API utility and drawing commands
 
@@ -588,33 +593,33 @@
   ([px py] (.hasPowerPrecise api px py)))
 
 (defn has-path?
-  ([unit target-unit] (.hasPath api (.getID unit) (.getID target-unit)))
-  ([unit to-x to-y] (.hasPath api (.getID unit) to-x to-y))
+  ([unit target-unit] (.hasPath api (getID unit) (getID target-unit)))
+  ([unit to-x to-y] (.hasPath api (getID unit) to-x to-y))
   ([from-x from-y to-x to-y] (.hasPath api from-x from-y to-x to-y)))
 
 (defn has-loaded-unit? [unit maybe-loaded-unit]
-  (.hasLoadedUnit api (.getID unit) (.getID maybe-loaded-unit)))
+  (.hasLoadedUnit api (getID unit) (getID maybe-loaded-unit)))
 
 (defn can-build-here?
   ([tx ty unit-to-build check-explored] (.canBuildHere api tx ty (get-type-id unit-to-build) check-explored))
-  ([unit tx ty unit-to-build check-explored] (.canBuildHere api (.getID unit) tx ty
+  ([unit tx ty unit-to-build check-explored] (.canBuildHere api (getID unit) tx ty
                                                             (get-type-id unit-to-build) check-explored)))
 
 (defn can-make?
   ([unit-to-make-kw] (.canMake api (get-type-id (unit-type-kws unit-to-make-kw))))
-  ([unit unit-to-make-kw] (.canMake api (.getID unit) (get-type-id (unit-type-kws unit-to-make-kw)))))
+  ([unit unit-to-make-kw] (.canMake api (getID unit) (get-type-id (unit-type-kws unit-to-make-kw)))))
 
 (defn can-research?
   ([tech] (.canResearch api (get-type-id tech)))
-  ([unit tech] (.canResearch api (.getID unit) (get-type-id tech))))
+  ([unit tech] (.canResearch api (getID unit) (get-type-id tech))))
 
 (defn can-upgrade?
   ([upgrade] (.canUpgrade api (get-type-id upgrade)))
-  ([unit upgrade] (.canUpgrade api (.getID unit) (get-type-id upgrade))))
+  ([unit upgrade] (.canUpgrade api (getID unit) (get-type-id upgrade))))
 
 (defn can-upgrade-kw?
   ([upgrade-kw] (.canUpgrade api (get-type-id (upgrade-type-kws upgrade-kw))))
-  ([unit upgrade-kw] (.canUpgrade api (.getID unit) (get-type-id (upgrade-type-kws upgrade-kw)))))
+  ([unit upgrade-kw] (.canUpgrade api (getID unit) (get-type-id (upgrade-type-kws upgrade-kw)))))
 
 (defn under-aoe? [unit]
   (or (under-dark-swarm? unit) (under-disruption-web? unit) (under-storm? unit)))
@@ -627,7 +632,7 @@
 
 (defn replay? [] (.isReplay api))
 
-(defn visible-to-player? [unit player] (.isVisibleToPlayer api (.getID unit) (.getID player)))
+(defn visible-to-player? [unit player] (.isVisibleToPlayer api (getID unit) (getID player)))
 
 (defn last-error [] (.getLastError api))
 
@@ -770,22 +775,22 @@
         py (+ (pixel-y unit) (* distance (Math/sin rad)))]
     [px py]))
 
-(defn move-angle
-  "Move a unit a specified distance at a specified angle."
-  [unit angle distance]
-  (apply move unit (point-angle unit angle distance)))
+; (defn move-angle
+;   "Move a unit a specified distance at a specified angle."
+;   [unit angle distance]
+;   (apply move unit (point-angle unit angle distance)))
 
-(defn mineral-walk-angle
-  "Attempt to mineral walk in the general direction of the provided
-  angle. If no minerals are in that direction, falls back to
-  move-angle."
-  [unit angle distance]
-  (let [in-direction? (fn [mineral] (<= (Math/abs (- angle (angle-to unit mineral))) 135))
-        minerals (filter in-direction? (minerals))
-        current-frame (frame-count)]
-    (if (seq minerals)
-      (gather unit (first minerals))
-      (move-angle unit angle distance))))
+; (defn mineral-walk-angle
+;   "Attempt to mineral walk in the general direction of the provided
+;   angle. If no minerals are in that direction, falls back to
+;   move-angle."
+;   [unit angle distance]
+;   (let [in-direction? (fn [mineral] (<= (Math/abs (- angle (angle-to unit mineral))) 135))
+;         minerals (filter in-direction? (minerals))
+;         current-frame (frame-count)]
+;     (if (seq minerals)
+;       (gather unit (first minerals))
+;       (move-angle unit angle distance))))
 
 (defn closest [unit coll]
   (when (and unit (seq coll))
@@ -815,17 +820,17 @@
   ;; TODO: clean up these pixel/walk-tile/build-tile conversions
   ([unit distance] (walls-nearby unit distance 45))
   ([unit distance sep]
-     (let [angles (for [angle (range 0 360 sep)
-                        :let [[px py] (point-angle unit angle distance)]]
-                    (when (or (not (<= 0 px (map-width)))
-                              (not (<= 0 py (map-height)))
-                              (not= (map-tile-height (Math/floor (/ px 32))
-                                                     (Math/floor (/ py 32)))
-                                    (map-tile-height (tile-x unit)
-                                                     (tile-y unit)))
-                              (not (walkable? (/ px 8) (/ py 8))))
-                      angle))]
-       (remove nil? angles))))
+   (let [angles (for [angle (range 0 360 sep)
+                      :let [[px py] (point-angle unit angle distance)]]
+                  (when (or (not (<= 0 px (map-width)))
+                            (not (<= 0 py (map-height)))
+                            (not= (map-tile-height (Math/floor (/ px 32))
+                                                   (Math/floor (/ py 32)))
+                                  (map-tile-height (tile-x unit)
+                                                   (tile-y unit)))
+                            (not (walkable? (/ px 8) (/ py 8))))
+                    angle))]
+     (remove nil? angles))))
 
 (defn unit-max-range [unit]
   (max (max-range (ground-weapon unit)) (max-range (air-weapon unit))))
@@ -835,7 +840,7 @@
   within buffer pixels. TODO: Filter by ground/air."
   ([unit coll] (attackable-by unit coll 128))
   ([unit coll buffer]
-     (filter #(<= (dist unit %) (max buffer (unit-max-range %))) coll)))
+   (filter #(<= (dist unit %) (max buffer (unit-max-range %))) coll)))
 
 (defn can-attack?
   "Returns true if unit has a weapon capable of hitting target."
@@ -848,15 +853,15 @@
 
 (defn enemies-in-range
   ([unit]
-     (let [max-range (max (max-range (ground-weapon unit)) (max-range (air-weapon unit)))
-           in-range? (fn [enemy] (<= (dist unit enemy) max-range))
-           in-range-enemies (filter in-range? (enemy-units))]
-       (seq in-range-enemies)))
+   (let [max-range (max (max-range (ground-weapon unit)) (max-range (air-weapon unit)))
+         in-range? (fn [enemy] (<= (dist unit enemy) max-range))
+         in-range-enemies (filter in-range? (enemy-units))]
+     (seq in-range-enemies)))
   ([unit attack-type]
-     (let [get-weapon (if (= attack-type :ground) ground-weapon air-weapon)
-           in-range? (fn [enemy] (<= (dist unit enemy) (max-range (get-weapon unit))))
-           in-range-enemies (filter in-range? (enemy-units))]
-       (seq in-range-enemies))))
+   (let [get-weapon (if (= attack-type :ground) ground-weapon air-weapon)
+         in-range? (fn [enemy] (<= (dist unit enemy) (max-range (get-weapon unit))))
+         in-range-enemies (filter in-range? (enemy-units))]
+     (seq in-range-enemies))))
 
 (defn being-targeted-by
   "Return units in coll that are currently targeting the specified

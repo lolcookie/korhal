@@ -125,9 +125,9 @@
                          (not @repl-control))
                   (do (try
                         (run-strategy-engine)
-                      (catch Exception e
-                        (println "Strategy engine exception!")
-                        (.printStackTrace e)))
+                       (catch Exception e
+                         (println "Strategy engine exception!")
+                         (.printStackTrace e)))
                       (dosync
                        (commute strategy-state assoc-in [:frame] frame)))
                   (Thread/sleep 1))
